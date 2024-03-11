@@ -1,36 +1,36 @@
 import * as XLSX from "xlsx";
 
-type UserPreference = {
+export type UserPreference = {
     userEmail: string;
     userName: string;
     preferences: string[]; // Array of computer serial numbers in preference order
 };
 
-type Computer = {
+export type Computer = {
     "Machine Name": string;
     "Serial #": string;
     Charger: string;
 };
 
-function getAvailableComputers(filePath: string) {
+export function getAvailableComputers(filePath: string): Computer[] {
+    console.log("filePath", filePath);
     const wb = XLSX.readFile(filePath);
     const sheetNames = ["Laptops", "Mini PCs", "Desktops", "Workstations"];
 
-    const availableComputers: { [sheetName: string]: Computer[] } = {};
+    const availableComputers: Computer[] = [];
 
     sheetNames.forEach((sheetName) => {
         const ws = wb.Sheets[sheetName];
         if (ws) {
             // An array of arrays, where each sub-array is a row
             const data: any[] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
             const headers: string[] = data[0]; // First row is the header
             const rows: any[] = data.slice(1); // Rest of the rows (data minus the header row)
 
-            availableComputers[sheetName] = rows.map((row) => {
-                const computer: any = {};
+            rows.forEach((row) => {
+                const computer: Partial<Computer> = {};
 
-                // Discards irrelevant columns
+                // Map relevant columns to computer properties
                 headers.forEach((key, index) => {
                     if (key === "Serial #") {
                         computer["Serial #"] = row[index];
@@ -41,18 +41,21 @@ function getAvailableComputers(filePath: string) {
                     }
                 });
 
-                return computer as Computer;
+                // Add the computer object to the array if it has been properly formed
+                if (computer["Serial #"] && computer["Machine Name"]) {
+                    availableComputers.push(computer as Computer);
+                }
             });
         } else {
             console.log(`Error: worksheet not found: ${sheetName}`);
-            availableComputers[sheetName] = [];
         }
     });
 
     return availableComputers;
 }
 
-function getUserPreferences(filePath: string): UserPreference[] {
+export function getUserPreferences(filePath: string): UserPreference[] {
+    console.log("filePath", filePath);
     const wb = XLSX.readFile(filePath);
     const ws = wb.Sheets["Sheet1"];
 
@@ -86,13 +89,3 @@ function getUserPreferences(filePath: string): UserPreference[] {
 
     return userPreferences;
 }
-
-const inventoryPath = "../src/it-inventory.xlsx";
-const availableComputers = getAvailableComputers(inventoryPath);
-console.log(availableComputers);
-
-const preferencesPath = "../src/preferences.xlsx";
-const userPreferences = getUserPreferences(preferencesPath);
-console.log(userPreferences);
-
-export { getAvailableComputers, getUserPreferences };
