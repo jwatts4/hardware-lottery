@@ -1,66 +1,33 @@
-import { allComputerSerialNumbers } from "./inventory";
+import { allocateComputers } from "./allocate";
+import { getAvailableComputers, getUserPreferences } from "./xlsxReader";
 
-type UserPreference = {
-    userId: string;
-    preferences: string[]; // Array of computer serial numbers in preference order
-};
+// Paths to your Excel files
+const inventoryPath = "../data/it-inventory.xlsx";
+const userPreferencesPath = "../data/preferences.xlsx";
 
-// Example user preferences data
-const userPreferences: UserPreference[] = [
-    { userId: "user1", preferences: ["PC0D7FPE", "R90RXK4", "PC0DUC0CA"] },
-    { userId: "user2", preferences: ["PC0DF6A1", "R90RXK4", "R90TFB6H"] },
-    { userId: "user3", preferences: ["R90RXK4", "PF12UBDL", "PC0D7FPE"] },
-    // ... more users
-];
+function main() {
+    try {
+        // Retrieve the available computers from the inventory
+        const availableComputers = getAvailableComputers(inventoryPath);
 
-// Allocation function
-function allocateComputers(
-    allComputerSerialNumbers: string[],
-    userPreferences: UserPreference[]
-): any[] {
-    let allocations: { userId: string; computerSerial: string | null }[] = [];
+        // Retrieve the user preferences
+        const userPreferences = getUserPreferences(userPreferencesPath);
 
-    let availableComputers = new Set(allComputerSerialNumbers);
+        // Allocate the computers based on user preferences
+        const allocations = allocateComputers(
+            availableComputers,
+            userPreferences
+        );
 
-    // Randomize user order for fairness
-    userPreferences.sort(() => Math.random() - 0.5);
+        // Output the allocations
+        console.log("Computer Allocations:", allocations);
+        console.log("Hello world");
 
-    userPreferences.forEach((user) => {
-        let allocatedSerial: string | null = null;
-
-        for (const preference of user.preferences) {
-            if (availableComputers.has(preference)) {
-                // User will only get one of their preferences
-                allocatedSerial = preference;
-                availableComputers.delete(preference);
-                break;
-            }
-        }
-
-        allocations.push({
-            userId: user.userId,
-            computerSerial: allocatedSerial,
-        });
-    });
-
-    // Add all users who didn't get a computer to the allocations list with `null`
-    allocations = allocations.map((allocation) => {
-        if (allocation.computerSerial === null) {
-            console.log(`No computers left for ${allocation.userId}`);
-        }
-        return allocation;
-    });
-
-    return allocations;
+        // Here you might want to do something with the allocations,
+        // like saving them to a file or sending them somewhere else
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
 }
 
-// Execute the allocation
-const allocations = allocateComputers(
-    allComputerSerialNumbers,
-    userPreferences
-);
-
-// Output the allocations
-console.log(allocations);
-
-export {};
+main();
