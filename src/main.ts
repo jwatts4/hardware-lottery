@@ -1,26 +1,36 @@
 import { allocateComputers } from "./allocate";
-import { getAvailableComputers, getUserPreferences } from "./xlsxReader";
+import path from "path";
+import {
+  getAvailableComputers,
+  getUserPreferences,
+  getFakeUserPreferences,
+  writeAllocationsToExcel,
+  UserPreference,
+  Computer,
+} from "./xlsxReader";
 
-// Paths to your Excel files
-const inventoryPath = "./data/it-inventory.xlsx";
-const userPreferencesPath = "./data/preferences.xlsx";
+const inventoryPath = path.join(__dirname, "../data/it-inventory.xlsx");
+const userPreferencesPath = path.join(__dirname, "../data/preferences.xlsx");
+const savePath = path.join(__dirname, "../data/allocations.xlsx");
+const testSavePath = path.join(__dirname, "../data/test-allocations.xlsx");
 
-function main() {
+async function main() {
   try {
-    // Retrieve the available computers from the inventory
-    const availableComputers = getAvailableComputers(inventoryPath);
+    const availableComputers: Computer[] = getAvailableComputers(inventoryPath);
+    // Test preferences
+    const fakeUserPreferences: UserPreference[] =
+      getFakeUserPreferences(inventoryPath);
+    const fakeAllocations = allocateComputers(
+      availableComputers,
+      fakeUserPreferences
+    );
+    writeAllocationsToExcel(testSavePath, fakeAllocations);
 
-    // Retrieve the user preferences
-    const userPreferences = getUserPreferences(userPreferencesPath);
-
-    // Allocate the computers based on user preferences
+    // Real preferences
+    const userPreferences: UserPreference[] =
+      getUserPreferences(userPreferencesPath);
     const allocations = allocateComputers(availableComputers, userPreferences);
-
-    // Output the allocations
-    console.log("Computer Allocations:", allocations);
-
-    // Here you might want to do something with the allocations,
-    // like saving them to a file or sending them somewhere else
+    writeAllocationsToExcel(savePath, allocations);
   } catch (error) {
     console.error("An error occurred:", error);
   }
