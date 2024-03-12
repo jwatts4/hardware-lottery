@@ -1,6 +1,6 @@
 import { UserPreference, Computer } from "./xlsxReader";
 
-type Allocation = {
+export type Allocation = {
   userName: string;
   userEmail: string;
   computer: Computer | null;
@@ -41,7 +41,7 @@ export function allocateComputers(
     allocations.push({
       userName: user.userName,
       userEmail: user.userEmail, // Assuming userEmail should be used as userId
-      computer: allocatedComputer,
+      computer: allocatedComputer, // will be null if they didn't win
     });
   });
 
