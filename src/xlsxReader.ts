@@ -92,7 +92,7 @@ export function getUserPreferences(preferencePath: string): UserPreference[] {
 
 export function getFakeUserPreferences(
   inventoryPath: string,
-  numResponses: number
+  numResponses: number = 25
 ): UserPreference[] {
   const availableComputers = getAvailableComputers(inventoryPath);
   const shuffledComputers = availableComputers.sort(() => Math.random() - 0.5);
